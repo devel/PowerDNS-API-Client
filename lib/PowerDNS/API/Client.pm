@@ -2,28 +2,92 @@ package PowerDNS::API::Client;
 use strict;
 use warnings;
 
+use warnings;
+use strict;
+use Moose;
+use LWP::UserAgent;
+
+use namespace::clean -except => 'meta';
+
+use PowerDNS::API::Client::Request;
+
+has 'api_key' => (
+    isa => 'Str',
+    is  => 'ro',
+    required => 1,
+);
+
+has 'api_secret' => (
+    isa => 'Str',
+    is  => 'ro',
+    required => 1,
+);
+
+has 'server' => (
+    isa => 'Str',
+    is  => 'rw',
+);
+
+has 'ua' => (
+    is  => 'rw',
+    isa => 'LWP::UserAgent',
+    lazy_build => 1,
+);
+
+sub _build_ua {
+    my $self = shift;
+    my $ua = LWP::UserAgent->new();
+    $ua->env_proxy;
+    return $ua;
+}
+
+sub _request {
+    my ($self, $method, $path, %args) = @_;
+    return PowerDNS::API::Client::Request->new(
+        method => $method,
+        path   => $path,
+        args   => \%args,
+        api    => $self,
+    );
+
+}
+
+sub call {
+    my $self = shift;
+    my $http_response = $self->ua->request( $self->_request(@_)->http_request );
+    return PowerDNS::API::Client::Response->new(http => $http_response)->data;
+}
+
+
+__PACKAGE__->meta->make_immutable;
+
+local ($PowerDNS::API::Client::VERSION) = ('devel') unless defined $PowerDNS::API::Client::VERSION;
+
 1;
 
 __END__
 
 =pod
 
+=encoding utf8
+
 =head1 NAME
 
-PowerDNS::API::Client -
+PowerDNS::API::Client - Client for PowerDNS::API
 
 =head1 SYNOPSIS
 
-
-=head1 DESCRIPTION
+    my $client = PowerDNS::API::Client->new( server => 'https://api.example.com/' );
 
 =head1 METHODS
 
-=over4
+=head2 call( $endpoint, %args )
 
-=item ...
+Calls the endpoint (see the API documentation) with the specified
+arguments.  Returns a hash data structure with the API results.
 
-=back
+=head1 DEBUGGING
+
 
 =head1 AUTHOR
 
@@ -32,10 +96,7 @@ Ask Bjørn Hansen, C<< <ask at develooper.com> >>
 =head1 BUGS
 
 Please report any bugs or feature requests to the issue tracker at
-L<http://github.com/abh/PowerDNS-API-Client/issues>.
-
-The Git repository is available at
-L<http://github.com/abh/PowerDNS-API-Client>
+L<http://github.com/devel/PowerDNS-API-Client/issues>.
 
 
 =head1 COPYRIGHT & LICENSE
@@ -47,5 +108,3 @@ under the same terms as Perl itself.
 
 =cut
 
-
-=cut
