@@ -17,17 +17,22 @@ has data => (
 
 sub _build_data {
     my $self = shift;
-    unless ($self->http->code == 200) {
+    if ($self->http->content_type ne 'application/json') {
+        if ($ENV{API_DEBUG}) {
+            require Data::Dumper;
+            warn "PowerDNS::API::Client Response: ", Data::Dumper::Dumper($self->http);
+        }
         return +{
-            error_code => $self->http->code,
-            error      => $self->http->status_line,
+            http_status => $self->http->code,
+            error       => $self->http->status_line,
         };
     }
-    my $data = decode_json($self->http->content);
+    my $data = decode_json($self->http->decoded_content);
     if ($ENV{API_DEBUG}) {
         require Data::Dumper;
         warn "PowerDNS::API::Client Response: ", Data::Dumper::Dumper($data);
     }
+    $data->{http_status} = $self->http->code;
     return $data;
 }
 

@@ -5,19 +5,20 @@ use warnings;
 use warnings;
 use strict;
 use Moose;
-use LWP::UserAgent;
+use LWP::UserAgent ();
+use URI ();
 
 use namespace::clean -except => 'meta';
 
 use PowerDNS::API::Client::Request;
 
-has 'api_key' => (
+has 'user' => (
     isa => 'Str',
     is  => 'ro',
     required => 1,
 );
 
-has 'api_secret' => (
+has 'password' => (
     isa => 'Str',
     is  => 'ro',
     required => 1,
@@ -38,6 +39,8 @@ sub _build_ua {
     my $self = shift;
     my $ua = LWP::UserAgent->new();
     $ua->env_proxy;
+    my $realm = URI->new($self->server)->host_port;
+    $ua->credentials($realm, 'PowerDNS::API', $self->user, $self->password);
     return $ua;
 }
 

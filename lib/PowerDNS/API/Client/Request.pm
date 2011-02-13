@@ -19,6 +19,12 @@ has method => (
     is       => 'ro',
 );
 
+has path => (
+    isa      => 'Str',
+    required => 1,
+    is       => 'ro',
+);
+
 has args => (
     isa => 'HashRef[Str]',
     is  => 'rw',
@@ -27,11 +33,10 @@ has args => (
 sub _query {
     my %args = @_;
 
-    my $api_secret = delete $args{api_secret};
-
-    $args{api_ts} = time;
-    $args{api_sig} =
-      hmac_sha256_hex(_get_parameter_string(\%args), $api_secret);
+    #my $api_secret = delete $args{api_secret};
+    #$args{api_ts} = time;
+    #$args{api_sig} =
+    #  hmac_sha256_hex(_get_parameter_string(\%args), $api_secret);
 
     use Data::Dump qw(pp);
     pp(\%args);
@@ -44,15 +49,15 @@ sub _query {
 sub http_request {
     my $self = shift;
     my $uri  = URI->new($self->api->server);
-    $uri->path("/api/" . $self->method);
+    $uri->path("/api/" . $self->path);
 
     my $content = _query(
         %{$self->args},
-        api_key    => $self->api->api_key,
-        api_secret => $self->api->api_secret,
+        #api_key    => $self->api->api_key,
+        #api_secret => $self->api->api_secret,
     );
 
-    my $request = HTTP::Request->new(POST => $uri);
+    my $request = HTTP::Request->new($self->method => $uri);
 
     $request->header('Content-Type' => 'application/x-www-form-urlencoded');
     if (defined($content)) {
