@@ -28,11 +28,11 @@ sub _build_data {
         };
     }
     my $data = decode_json($self->http->decoded_content);
+    $data->{http_status} = $self->http->code;
     if ($ENV{API_DEBUG}) {
         require Data::Dumper;
         warn "PowerDNS::API::Client Response: ", Data::Dumper::Dumper($data);
     }
-    $data->{http_status} = $self->http->code;
     return $data;
 }
 
