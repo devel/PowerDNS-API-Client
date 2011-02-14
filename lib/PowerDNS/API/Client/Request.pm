@@ -1,7 +1,7 @@
 package PowerDNS::API::Client::Request;
 use Moose;
 use URI ();
-use Digest::SHA qw(hmac_sha256_hex);
+# use Digest::SHA qw(hmac_sha256_hex);
 use HTTP::Request ();
 use namespace::clean -except => 'meta';
 
