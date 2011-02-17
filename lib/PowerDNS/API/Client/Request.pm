@@ -38,9 +38,6 @@ sub _query {
     #$args{api_sig} =
     #  hmac_sha256_hex(_get_parameter_string(\%args), $api_secret);
 
-    use Data::Dump qw(pp);
-    pp(\%args);
-
     my $uri = URI->new();
     $uri->query_form(%args);
     return $uri->query;
