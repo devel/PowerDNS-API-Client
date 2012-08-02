@@ -10,7 +10,7 @@ use_ok('PowerDNS::API::Client');
 ok( my $api = PowerDNS::API::Client->new(
         user     => $user,
         password => $password,
-        server   => 'http://localhost:5000/',
+        server   => 'http://localhost:3000/',
     )
 );
 
@@ -19,11 +19,14 @@ my $testdomain = 'foo-' . time . ".test";
 ok( my $r = $api->call(GET => 'domain/'), 'get list of domains');
 isa_ok( $r->{domains}, 'ARRAY', 'got array of domains' );
 
-ok( $r = $api->call(PUT => 'domain/', domain => $testdomain ), 'add domain');
+ok( $r = $api->call(PUT => 'domain/' . $testdomain, serial => 10 ), 'add domain');
+is( $r->{http_status}, 201, '201 status');
 is( $r->{domain}->{name}, $testdomain, 'got right name back');
 is( $r->{domain}->{type}, 'MASTER', 'is MASTER');
+is( $r->{domain}->{soa}->{serial}, 10, 'serial 10');
 
-ok( $r = $api->call(PUT => 'domain/', domain => $testdomain ), 'add duplicate domain');
+
+ok( $r = $api->call(PUT => 'domain/'. $testdomain ), 'add duplicate domain');
 is( $r->{error}, 'domain exists', 'got error indicating duplicate domain');
 is( $r->{http_status}, 409, '409 status');
 
